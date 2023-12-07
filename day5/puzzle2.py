@@ -1,3 +1,5 @@
+from tqdm import tqdm
+
 with open("./input.txt", "r") as f:
 	lines = f.read().split('\n')
 
@@ -23,15 +25,6 @@ class Alamanac:
 		self.light_to_temperature_maps = []
 		self.temperature_to_humidity_maps = []
 		self.humidity_to_location_maps = []
-
-	def parse_seeds(self, seeds_line):
-		seeds_data = seeds_line.split(':')[1].strip().split()
-		seeds = []
-		for i in range(0, len(seeds_data), 2):
-			start = int(seeds_data[i])
-			length = int(seeds_data[i + 1])
-			seeds.extend(range(start, start + length))
-		return seeds
 	
 	def add_map(self, dst_start, src_start, range_length, maps_array):
 		mapping = Map(dst_start, src_start, range_length)
@@ -148,13 +141,16 @@ for line in lines:
 		values = map(int, line.split())
 		almanac.add_map(*values, almanac.humidity_to_location_maps)
 
-seeds = almanac.parse_seeds(lines[0])
-locations = []
-count = 0
-for seed in seeds:
-	if (count % 1000 == 0):
-		print(f"Processing seed {count}")
-	locations.append(almanac.map_seed_to_location(seed))
-	count += 1
+location = float('inf')
+seeds_array = lines[0].split(':')[1].strip().split()
+for i in tqdm(range(0, len(seeds_array), 2), desc=" Seeds range", position=0, colour='cyan'):
+	seeds = []
+	start = int(seeds_array[i])
+	length = int(seeds_array[i + 1])
+	seeds.extend(range(start, start + length))
 
-print(min(locations))
+	for seed in tqdm(seeds, desc=" Seeds", position=1, colour='magenta'):
+		loc = almanac.map_seed_to_location(seed)
+		location = loc if loc < location else location
+	del seeds
+	print(location)
